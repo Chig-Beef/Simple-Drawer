@@ -127,6 +127,8 @@ void GameChooseColor(Game *game) {
 }
 
 errno_t GameUpdate(Game *game) {
+  errno_t err;
+
   bool enactEnding = false;
   const ToolCheckEndFunc checkEnd = getToolCheckEndFunc(game->tool);
   if (checkEnd != NULL) {
@@ -134,15 +136,23 @@ errno_t GameUpdate(Game *game) {
   }
 
   if (enactEnding) {
-    errno_t err = GameChangeCanvas(game);
+    err = GameChangeCanvas(game);
     if (err) {
       return err;
     }
   }
 
+  // Save file?
+  if (IsKeyPressed(KEY_S)) {
+    err = PaintingSaveToFile(&game->canvas, "./test.chigimage");
+    if (err) {
+      printf("Couldn't save file!\n");
+    }
+  }
+
   // Maybe load an undo?
   if (IsKeyPressed(KEY_U)) {
-    errno_t err = GamePerformUndo(game);
+    err = GamePerformUndo(game);
     if (err) {
       printf("Couldn't perform undo\n");
       return 1;
@@ -153,7 +163,7 @@ errno_t GameUpdate(Game *game) {
   if (IsKeyDown(KEY_R)) {
     for (int i = 0; i < 10; ++i) {
       if (IsKeyPressed(KEY_ZERO+i)) {
-        errno_t err = GamePerformRedo(game, i);
+        err = GamePerformRedo(game, i);
         if (err) {
           printf("Couldn't perform redo\n");
         }
@@ -219,14 +229,14 @@ errno_t GameInit(Game *game) {
   }
 
   // Load image to draw on
-  byte *imageFileData;
-  long imageFileLen;
-  err = FReadWhole("./test.png", &imageFileData, &imageFileLen);
-  if (err) { // Create a blank image
-    game->canvas = PaintingNew(240, 240);
-    // return 1;
-  } else { // TODO: Use the image in the file
-    game->canvas = PaintingNew(240, 240);
+  err = PaintingLoadFromFile(&game->canvas, "./test.chigimage");
+  if (err) { // Create a blank image instead
+    printf("Issue loading image, creating blank image\n");
+    err = PaintingNew(&game->canvas, 240, 240);
+    if (err) {
+      printf("Couldn't create new image\n");
+      return 1;
+    }
   }
 
   // Copy this image into the undo tree

@@ -10,7 +10,7 @@ typedef struct Painting {
   Color *pixels;
 } Painting;
 
-Painting PaintingNew(const int width, const int height);
+errno_t PaintingNew(Painting *painting, const int width, const int height);
 
 void PaintingDestroy(Painting *painting);
 
@@ -25,5 +25,9 @@ void PaintingDrawCircle(Painting *painting, int sx, int sy, int ex, int ey, cons
 void PaintingFill(Painting *painting, const Color color);
 
 errno_t PaintingCopy(Painting *dst, const Painting src);
+
+errno_t PaintingLoadFromFile(Painting *out, const char fileName[]);
+
+errno_t PaintingSaveToFile(Painting *out, const char fileName[]);
 
 #endif

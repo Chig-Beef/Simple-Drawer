@@ -4,15 +4,21 @@
 #include <string.h>
 
 #include "Painting.h"
+#include "FileOp.h"
+#include "BuffView.h"
 
-Painting PaintingNew(const int width, const int height) {
-  Painting painting = (Painting){width, height};
+errno_t PaintingNew(Painting *painting, const int width, const int height) {
+  *painting = (Painting){width, height};
 
   const int totalPixels = width*height;
-  painting.pixels = malloc(totalPixels*sizeof(Color));
-  memset(painting.pixels, 0, totalPixels*sizeof(Color));
+  painting->pixels = malloc(totalPixels*sizeof(Color));
+  if (!painting->pixels) {
+    return 1;
+  }
 
-  return painting;
+  memset(painting->pixels, 0, totalPixels*sizeof(Color));
+
+  return 0;
 }
 
 void PaintingDestroy(Painting *painting) {
@@ -145,6 +151,72 @@ errno_t PaintingCopy(Painting *dst, const Painting src) {
   }
 
   memcpy(dst->pixels, src.pixels, totalPixels*sizeof(Color));
+
+  return 0;
+}
+
+errno_t PaintingLoadFromFile(Painting *out, const char fileName[]) {
+  // Load image data
+  byte *imageFileData;
+  long imageFileLen;
+  errno_t err = FReadWhole(fileName, &imageFileData, &imageFileLen);
+  if (err) {
+    printf("Couldn't read input file\n");
+    return 1;
+  }
+
+  // Determine image dimensions
+  const int width = readUInt32FromBuff(0, imageFileData);
+  const int height = readUInt32FromBuff(4, imageFileData);
+
+  // Create the new image
+  err = PaintingNew(out, width, height);
+  if (err) {
+    printf("Couldn't create new image\n");
+    return 1;
+  }
+
+  const int totalPixels = width*height;
+  const int totalPixelBytes = totalPixels*sizeof(Color);
+  const int totalBytes = totalPixelBytes + 8;
+
+  if (totalBytes != imageFileLen) {
+    printf("Painting file was not sized as expected\n");
+    free(imageFileData);
+    return 1;
+  }
+
+  memcpy(out->pixels, imageFileData+8, totalPixelBytes);
+
+  free(imageFileData);
+
+  return 0;
+}
+
+errno_t PaintingSaveToFile(Painting *out, const char fileName[]) {
+  const int totalPixels = out->width * out->height;
+  const int totalPixelBytes = totalPixels*sizeof(Color);
+  const int totalBytes = totalPixelBytes + 8;
+
+  byte *buff = malloc(totalBytes);
+  if (!buff) {
+    printf("Couldn't allocate write buffer\n");
+    return 1;
+  }
+
+  // Copy in image width and height
+  writeUInt32ToBuff(out->width, 0, buff);
+  writeUInt32ToBuff(out->width, 4, buff);
+
+  // Copy in all other data
+  memcpy(buff+8, out->pixels, totalPixelBytes);
+
+  errno_t err = FWriteWhole(fileName, buff, totalBytes);
+  free(buff);
+  if (err) {
+    printf("Couldn't write to file\n");
+    return 1;
+  }
 
   return 0;
 }
