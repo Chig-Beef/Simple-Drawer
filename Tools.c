@@ -19,6 +19,30 @@ void ToolEndFill(Game *game) {
   PaintingFill(&game->canvas, game->color);
 }
 
+bool ToolCheckEndDrag(Game *game) {
+  if (IsMouseButtonDown(0)) {
+    if (!game->startedPlacing) {
+      // Start placing
+      game->startedPlacing = true;
+      game->startX = GetMouseX();
+      game->startY = GetMouseY();
+    }
+  } else {
+    if (game->startedPlacing) {
+      game->endX = GetMouseX();
+      game->endY = GetMouseY();
+      game->startedPlacing = false;
+
+      return true;
+    }
+  }
+  return false;
+}
+
+bool ToolCheckEndClick(Game *game) {
+  return IsMouseButtonPressed(0);
+}
+
 const char *toolNames[NUM_TOOLS] = {
   "rectangle",
   "cursor",
@@ -35,6 +59,14 @@ const ToolEndFunc toolEndFuncs[NUM_TOOLS] = {
   ToolEndLine,
 };
 
+const ToolCheckEndFunc toolCheckEndFuncs[NUM_TOOLS] = {
+  ToolCheckEndDrag,
+  NULL,
+  ToolCheckEndDrag,
+  ToolCheckEndClick,
+  ToolCheckEndDrag,
+};
+
 const char *getToolName(ToolCode tc) {
   if (tc >= NUM_TOOLS) {
     return "INVALID";
@@ -47,4 +79,11 @@ const ToolEndFunc getToolEndFunc(ToolCode tc) {
     return NULL;
   }
   return toolEndFuncs[tc];
+}
+
+const ToolCheckEndFunc getToolCheckEndFunc(ToolCode tc) {
+  if (tc >= NUM_TOOLS) {
+    return NULL;
+  }
+  return toolCheckEndFuncs[tc];
 }

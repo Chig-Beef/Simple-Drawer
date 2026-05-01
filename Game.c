@@ -4,6 +4,7 @@
 
 #include "Game.h"
 #include "Painting.h"
+#include "Tools.h"
 #include "UndoTree.h"
 
 errno_t GameChangeCanvas(Game *game) {
@@ -99,89 +100,9 @@ errno_t GamePerformRedo(Game *game, const int stateNum) {
 
 errno_t GameUpdate(Game *game) {
   bool enactEnding = false;
-
-  switch (game->tool) {
-  case TC_RECT:
-    if (IsMouseButtonDown(0)) {
-      if (!game->startedPlacing) {
-        // Start placing
-        game->startedPlacing = true;
-        game->startX = GetMouseX();
-        game->startY = GetMouseY();
-      } else {
-        // Continue placing?
-      }
-    } else {
-      if (!game->startedPlacing) {
-        // Keep not placing?
-      } else {
-        game->endX = GetMouseX();
-        game->endY = GetMouseY();
-
-        enactEnding = true;
-
-        game->startedPlacing = false;
-      }
-    }
-    break;
-
-  case TC_CURSOR:
-    break;
-  case TC_CIRCLE:
-    if (IsMouseButtonDown(0)) {
-      if (!game->startedPlacing) {
-        // Start placing
-        game->startedPlacing = true;
-        game->startX = GetMouseX();
-        game->startY = GetMouseY();
-      } else {
-        // Continue placing?
-      }
-    } else {
-      if (!game->startedPlacing) {
-        // Keep not placing?
-      } else {
-        game->endX = GetMouseX();
-        game->endY = GetMouseY();
-
-        enactEnding = true;
-
-        game->startedPlacing = false;
-      }
-    }
-    break;
-
-  case TC_FILL:
-    if (IsMouseButtonPressed(0)) {
-      enactEnding = true;
-    }
-    break;
-
-  case TC_LINE:
-    if (IsMouseButtonDown(0)) {
-      if (!game->startedPlacing) {
-        // Start placing
-        game->startedPlacing = true;
-        game->startX = GetMouseX();
-        game->startY = GetMouseY();
-      } else {
-        // Continue placing?
-      }
-    } else {
-      if (!game->startedPlacing) {
-        // Keep not placing?
-      } else {
-        game->endX = GetMouseX();
-        game->endY = GetMouseY();
-
-        enactEnding = true;
-
-        game->startedPlacing = false;
-      }
-    }
-    break;
-  default:
-    return 1;
+  const ToolCheckEndFunc checkEnd = getToolCheckEndFunc(game->tool);
+  if (checkEnd != NULL) {
+    enactEnding = checkEnd(game);
   }
 
   if (enactEnding) {

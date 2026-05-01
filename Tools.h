@@ -2,6 +2,7 @@
 #define _TOOLS_H_
 
 #include "def.h"
+#include "stdbool.h"
 
 // Forward declare Game
 typedef struct Game Game;
@@ -19,7 +20,12 @@ typedef enum ToolCode {
 // (e.g., actually drawing the rectangle)
 typedef void (*ToolEndFunc) (Game*);
 
+// The function that determines whether the end func
+// should be called
+typedef bool (*ToolCheckEndFunc) (Game*);
+
 const char *getToolName(ToolCode tc);
 const ToolEndFunc getToolEndFunc(ToolCode tc);
+const ToolCheckEndFunc getToolCheckEndFunc(ToolCode tc);
 
 #endif
