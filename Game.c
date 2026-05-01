@@ -99,6 +99,33 @@ errno_t GamePerformRedo(Game *game, const int stateNum) {
   return 0;
 }
 
+#define NUM_AVAILABLE_COLORS 7
+
+typedef struct ColorPair {
+  KeyboardKey key;
+  Color value;
+} ColorPair;
+
+const ColorPair colorPairs[NUM_AVAILABLE_COLORS] = {
+  {KEY_Z, RED},
+  {KEY_X, BLUE},
+  {KEY_C, YELLOW},
+  {KEY_V, GREEN},
+  {KEY_B, WHITE},
+  {KEY_N, BLACK},
+  {KEY_M, GRAY},
+};
+
+void GameChooseColor(Game *game) {
+  for (int i = 0; i < NUM_AVAILABLE_COLORS; ++i) {
+    const ColorPair pair = colorPairs[i];
+    if (IsKeyPressed(pair.key)) {
+      game->color = pair.value;
+      return;
+    }
+  }
+}
+
 errno_t GameUpdate(Game *game) {
   bool enactEnding = false;
   const ToolCheckEndFunc checkEnd = getToolCheckEndFunc(game->tool);
@@ -143,6 +170,8 @@ errno_t GameUpdate(Game *game) {
     }
   }
 
+  GameChooseColor(game);
+
   return 0;
 }
 
@@ -179,7 +208,7 @@ errno_t GameInit(Game *game) {
 
   // Simple props
   game->tool = TC_RECT;
-  game->color = (Color){255, 0, 0, 255};
+  game->color = RED;
   game->startedPlacing = false;
 
   // Create the undo tree
