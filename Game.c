@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stddef.h>
 
+#include "FileOp.h"
 #include "Game.h"
 #include "Painting.h"
 #include "Tools.h"
@@ -170,5 +171,57 @@ errno_t GameTick(Game *game) {
   err = GameDraw(game);
   if (err) return err;
 
+  return 0;
+}
+
+errno_t GameInit(Game *game) {
+  errno_t err;
+
+  // Simple props
+  game->tool = TC_RECT;
+  game->color = (Color){255, 0, 0, 255};
+  game->startedPlacing = false;
+
+  // Create the undo tree
+  err = UndoTreeCreate(&game->tree);
+  if (err) {
+    printf("Couldn't create undo tree\n");
+    return 1;
+  }
+
+  // Load image to draw on
+  byte *imageFileData;
+  long imageFileLen;
+  err = FReadWhole("./test.png", &imageFileData, &imageFileLen);
+  if (err) { // Create a blank image
+    game->canvas = PaintingNew(240, 240);
+    // return 1;
+  } else { // TODO: Use the image in the file
+    game->canvas = PaintingNew(240, 240);
+  }
+
+  // Copy this image into the undo tree
+  err = PaintingCopy(&game->tree.root.state, game->canvas);
+  if (err) {
+    printf("Couldn't copy painting\n");
+    return 1;
+  }
+
+  return 0;
+}
+
+void GameDestroy(Game *game) {
+  PaintingDestroy(&game->canvas);
+  UndoTreeDestroy(&game->tree);
+}
+
+// Constantly runs frames until close or error
+errno_t GameRun(Game *game) {
+  while (!WindowShouldClose()) {
+    errno_t err = GameTick(game);
+    if (err) {
+      return 1;
+    }
+  }
   return 0;
 }

@@ -16,6 +16,13 @@ typedef struct Game {
   int startX, startY, endX, endY;
 } Game;
 
+// In case the user wants to control the loop
 errno_t GameTick(Game *game);
+
+errno_t GameInit(Game *game);
+
+errno_t GameRun(Game *game);
+
+void GameDestroy(Game *game);
 
 #endif
