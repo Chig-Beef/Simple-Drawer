@@ -43,47 +43,17 @@ bool ToolCheckEndClick(Game *game) {
   return IsMouseButtonPressed(0);
 }
 
-const char *toolNames[NUM_TOOLS] = {
-  "rectangle",
-  "cursor",
-  "circle",
-  "fill",
-  "line",
+const Tool tools[NUM_TOOLS] = {
+  {TC_RECT, "rectangle", ToolEndRectangle, ToolCheckEndDrag},
+  {TC_CURSOR, "cursor", NULL, NULL},
+  {TC_CIRCLE, "circle", ToolEndCircle, ToolCheckEndDrag},
+  {TC_FILL, "fill", ToolEndFill, ToolCheckEndClick},
+  {TC_LINE, "line", ToolEndLine, ToolCheckEndDrag},
 };
 
-const ToolEndFunc toolEndFuncs[NUM_TOOLS] = {
-  ToolEndRectangle,
-  NULL,
-  ToolEndCircle,
-  ToolEndFill,
-  ToolEndLine,
-};
-
-const ToolCheckEndFunc toolCheckEndFuncs[NUM_TOOLS] = {
-  ToolCheckEndDrag,
-  NULL,
-  ToolCheckEndDrag,
-  ToolCheckEndClick,
-  ToolCheckEndDrag,
-};
-
-const char *getToolName(ToolCode tc) {
+const Tool getTool(ToolCode tc) {
   if (tc >= NUM_TOOLS) {
-    return "INVALID";
+    return (Tool){NUM_TOOLS, NULL, NULL};
   }
-  return toolNames[tc];
-}
-
-const ToolEndFunc getToolEndFunc(ToolCode tc) {
-  if (tc >= NUM_TOOLS) {
-    return NULL;
-  }
-  return toolEndFuncs[tc];
-}
-
-const ToolCheckEndFunc getToolCheckEndFunc(ToolCode tc) {
-  if (tc >= NUM_TOOLS) {
-    return NULL;
-  }
-  return toolCheckEndFuncs[tc];
+  return tools[tc];
 }

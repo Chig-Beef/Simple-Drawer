@@ -9,7 +9,7 @@
 #include "UndoTree.h"
 
 errno_t GameChangeCanvas(Game *game) {
-  const ToolEndFunc endFunc = getToolEndFunc(game->tool);
+  const ToolEndFunc endFunc = game->tool.endFunc;
   if (endFunc == NULL) {
     printf("No canvas altering function found\n");
     return 1;
@@ -27,7 +27,7 @@ errno_t GameChangeCanvas(Game *game) {
   }
 
   // Add previous state to undo tree
-  err = UndoTreeAddState(&game->tree, canvasCopy, game->tool);
+  err = UndoTreeAddState(&game->tree, canvasCopy, game->tool.code);
   if (err) {
     printf("Couldn't add state to tree\n");
     return 1;
@@ -130,7 +130,7 @@ errno_t GameUpdate(Game *game) {
   errno_t err;
 
   bool enactEnding = false;
-  const ToolCheckEndFunc checkEnd = getToolCheckEndFunc(game->tool);
+  const ToolCheckEndFunc checkEnd = game->tool.checkEndFunc;
   if (checkEnd != NULL) {
     enactEnding = checkEnd(game);
   }
@@ -175,7 +175,7 @@ errno_t GameUpdate(Game *game) {
   } else {
     for (int i = 0; i < NUM_TOOLS; ++i) {
       if (IsKeyPressed(KEY_ZERO+i)) {
-        game->tool = (ToolCode)i;
+        game->tool = getTool((ToolCode)i);
       }
     }
   }
@@ -194,7 +194,7 @@ errno_t GameDraw(Game *game) {
   PaintingDraw(&game->canvas);
 
   // Display what tool we're using
-  DrawText(getToolName(game->tool), 5, 5, 10, WHITE);
+  DrawText(game->tool.name, 5, 5, 10, WHITE);
 
   EndDrawing();
 
@@ -217,7 +217,7 @@ errno_t GameInit(Game *game) {
   errno_t err;
 
   // Simple props
-  game->tool = TC_RECT;
+  game->tool = getTool(TC_RECT);
   game->color = RED;
   game->startedPlacing = false;
 

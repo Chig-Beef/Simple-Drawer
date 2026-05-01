@@ -10,7 +10,7 @@
 typedef struct Game {
   UndoTree tree;
   Painting canvas;
-  ToolCode tool;
+  Tool tool;
   Color color;
   bool startedPlacing;
   int startX, startY, endX, endY;

@@ -24,8 +24,13 @@ typedef void (*ToolEndFunc) (Game*);
 // should be called
 typedef bool (*ToolCheckEndFunc) (Game*);
 
-const char *getToolName(ToolCode tc);
-const ToolEndFunc getToolEndFunc(ToolCode tc);
-const ToolCheckEndFunc getToolCheckEndFunc(ToolCode tc);
+typedef struct Tool {
+  ToolCode code;
+  char *name;
+  ToolEndFunc endFunc;
+  ToolCheckEndFunc checkEndFunc;
+} Tool;
+
+const Tool getTool(ToolCode tc);
 
 #endif
